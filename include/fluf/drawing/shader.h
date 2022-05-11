@@ -1,20 +1,36 @@
 #pragma once
 #include <fluf/common.h>
+#include <fluf/containers/str.h>
 #include <fluf/math/spatial.h>
 #include <string>
 
 namespace Fluf
 {
+	enum class ShaderType
+	{
+		NONE = -1,
+		VERTEX = 0,
+		FRAGMENT = 1
+	};
+
+	struct ShaderSource
+	{
+		String VertexSource;
+		String FragmentSource;
+	};
+
 	class Shader
 	{
 	private:
 		uint m_program;
 		
-		static uint compile(uint type, const std::string& source);
+		static ShaderSource parse(const String& filepath);
+		static uint compile(uint type, const String& source);
 
 	public:
-		Shader(const std::string& vertex, const std::string& fragment);
+		Shader(const String& filepath);
 		~Shader();
+
 
 		int uniform_location(const char* name) const;
 		void set_uniform_1f(const char* name, float value) const;

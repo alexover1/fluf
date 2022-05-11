@@ -15,6 +15,7 @@ add_library(fluf
 	src/drawing/static_sprite.cpp
 	src/drawing/batch.cpp
 	src/drawing/simplerenderer.cpp
+	src/containers/str.cpp
 	src/internal/platform_glfw.cpp
 	src/internal/platform_sdl2.cpp
 	src/internal/renderer_opengl.cpp

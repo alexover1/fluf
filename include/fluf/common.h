@@ -67,3 +67,10 @@ namespace Fluf
 {
 	template<typename T> using InitializerList = std::initializer_list<T>;
 }
+
+// Ref Counter, for Graphics & Input Resources
+#include <memory>
+namespace Fluf
+{
+	template<typename T> using Ref = std::shared_ptr<T>;
+}

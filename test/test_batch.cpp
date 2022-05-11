@@ -1,5 +1,7 @@
 #include <fluf.h>
 #include <string>
+#include <fstream>
+#include <iostream>
 
 using namespace Fluf;
 
@@ -22,44 +24,10 @@ namespace Test
 
 		void startup()
 		{
-			std::string vertex =
-				"#version 330 core\n"
-				"layout(location = 0) in vec4 position;\n"
-				"layout(location = 1) in vec4 color;\n"
-				"uniform mat4 pr_matrix;\n"
-				"uniform mat4 ml_matrix = mat4(1.0);\n"
-				"out DATA\n"
-				"{\n"
-				"	vec4 position;\n"
-				"	vec4 color;\n"
-				"} vs_out;\n"
-				"void main()\n"
-				"{\n"
-				"	gl_Position = pr_matrix * ml_matrix * position;\n"
-				"	vs_out.position = ml_matrix * position;\n"
-				"	vs_out.color = color;\n"
-				"}\n";
-
-			std::string fragment =
-				"#version 330 core\n"
-				"#extension GL_ARB_separate_shader_objects : enable\n"
-				"layout(location = 0) out vec4 color;\n"
-				"uniform vec2 light_pos;\n"
-				"in DATA\n"
-				"{\n"
-				"	vec4 position;\n"
-				"	vec4 color;\n"
-				"} fs_in;\n"
-				"void main()\n"
-				"{\n"
-				"	float intensity = 1.0 / length(fs_in.position.xy - light_pos);\n"
-				"	color = fs_in.color * intensity;\n"
-				"}\n";
-
 			mat4x4 ortho{};
 			mat4x4_ortho(ortho, 0, 16, 0, 9, -1, 1);
 
-			shader = new Shader(vertex, fragment);
+			shader = new Shader("res/shaders/basic.shader");
 			shader->enable();
 			shader->set_uniform_mat4("pr_matrix", ortho);
 			shader->set_uniform_2f("light_pos", vec2{ 4.0f, 1.5f });

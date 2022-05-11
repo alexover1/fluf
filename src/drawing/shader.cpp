@@ -1,12 +1,53 @@
 #include <fluf/drawing/shader.h>
+#include <fluf/containers/vector.h>
 #include <GL/glew.h>
+#include <fstream>
+#include <sstream>
 
 using namespace Fluf;
 
-uint Shader::compile(uint type, const std::string& source)
+ShaderSource Shader::parse(const String& filepath)
+{
+	std::ifstream stream(filepath);
+
+	std::string line;
+	String vertex_source;
+	String fragment_source;
+	ShaderType type = ShaderType::NONE;
+
+	while (getline(stream, line))
+	{
+		if (line.find("@") != std::string::npos)
+		{
+			if (line.find("vs") != std::string::npos)
+				type = ShaderType::VERTEX;
+			else if (line.find("fs") != std::string::npos)
+				type = ShaderType::FRAGMENT;
+		}
+		else
+		{
+			if (type == ShaderType::VERTEX)
+			{
+				vertex_source.append(line.c_str());
+				vertex_source.append("\n");
+			}
+			else if (type == ShaderType::FRAGMENT)
+			{
+				fragment_source.append(line.c_str());
+				fragment_source.append("\n");
+			}
+		}
+	}
+
+	stream.close();
+
+	return { vertex_source, fragment_source };
+}
+
+uint Shader::compile(uint type, const String& source)
 {
 	uint id = glCreateShader(type);
-	const char* src = source.c_str();
+	const char* src = source.cstr();
 	glShaderSource(id, 1, &src, nullptr);
 	glCompileShader(id);
 
@@ -29,12 +70,14 @@ uint Shader::compile(uint type, const std::string& source)
 	return id;
 }
 
-Shader::Shader(const std::string& vertex, const std::string& fragment)
+Shader::Shader(const String& filepath)
 {
 	uint program = glCreateProgram();
 
-	uint vs = Shader::compile(GL_VERTEX_SHADER, vertex);
-	uint fs = Shader::compile(GL_FRAGMENT_SHADER, fragment);
+	ShaderSource source = Shader::parse(filepath);
+
+	uint vs = Shader::compile(GL_VERTEX_SHADER, source.VertexSource);
+	uint fs = Shader::compile(GL_FRAGMENT_SHADER, source.FragmentSource);
 
 	FLUF_ASSERT(vs, "Invalid vertex shader");
 	FLUF_ASSERT(fs, "Invalid fragment shader");

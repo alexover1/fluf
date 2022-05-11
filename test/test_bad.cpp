@@ -22,29 +22,10 @@ namespace Test
 
 		void startup()
 		{
-			std::string vertex =
-				"#version 330 core\n"
-				"layout(location = 0) in vec4 position;\n"
-				"uniform mat4 pr_matrix;\n"
-				"uniform mat4 ml_matrix = mat4(1.0);\n"
-				"void main()\n"
-				"{\n"
-				"	gl_Position = pr_matrix * ml_matrix * position;\n"
-				"}\n";
-
-			std::string fragment =
-				"#version 330 core\n"
-				"#extension GL_ARB_separate_shader_objects : enable\n"
-				"layout(location = 0) out vec4 color;\n"
-				"void main()\n"
-				"{\n"
-				"	color = vec4(1.0, 0.0, 0.0, 1.0);\n"
-				"}\n";
-
 			mat4x4 ortho{};
 			mat4x4_ortho(ortho, 0, 16, 0, 9, -1, 1);
 			
-			shader = new Shader(vertex, fragment);
+			shader = new Shader("res/shaders/basic.shader");
 			shader->enable();
 			shader->set_uniform_mat4("pr_matrix", ortho);
 

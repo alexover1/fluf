@@ -1,5 +1,6 @@
 #pragma once
 #include <fluf/common.h>
+#include <fluf/filesystem.h>
 
 namespace Fluf
 {
