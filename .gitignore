@@ -32,8 +32,7 @@
 *.app
 
 # Build
-out/
-test/
+[Oo]ut/
 
 # Visual studio
 .vs/
