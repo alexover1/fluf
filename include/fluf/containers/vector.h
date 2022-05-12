@@ -2,7 +2,7 @@
 #include "../common.h"
 #include <string.h>
 
-namespace Fluf
+namespace fluf
 {
 	template<class T>
 	class Vector

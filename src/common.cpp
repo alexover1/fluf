@@ -2,7 +2,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-using namespace Fluf;
+using namespace fluf;
 
 void Log::info(const char* format, ...)
 {

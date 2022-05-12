@@ -7,16 +7,16 @@
 #if defined(DEBUG) || defined(_DEBUG)
 #	include<stdlib.h>
 #	define FLUF_ASSERT(condition, msg) \
-	if (!(condition)) { Fluf::Log::error("%s\n\tin %s:%d", (msg), __FILE__, __LINE__); abort(); }
+	if (!(condition)) { fluf::Log::error("%s\n\tin %s:%d", (msg), __FILE__, __LINE__); abort(); }
 #else
 #	define FLUF_ASSERT(condition, msg) \
-	if (!(condition)) { Fluf::Log::error("%s\n\tin %s:%d", (msg), __FILE__, __LINE__); }
+	if (!(condition)) { fluf::Log::error("%s\n\tin %s:%d", (msg), __FILE__, __LINE__); }
 #endif
 
 // Numeric Types
 #include <stdint.h>    // for integer types
 #include <stddef.h>    // for size_t type
-namespace Fluf
+namespace fluf
 {
 	// Numeric Types
 	using i8 = int8_t;
@@ -35,7 +35,7 @@ namespace Fluf
 }
 
 // Logging
-namespace Fluf
+namespace fluf
 {
 	namespace Log
 	{
@@ -56,21 +56,21 @@ namespace Fluf
 
 // Functional
 #include <functional>
-namespace Fluf
+namespace fluf
 {
 	template<class Ret, class...Args> using Func = std::function<Ret(Args...)>;
 }
 
 // Initializer list, required for Vector/StackVector
 #include <initializer_list>
-namespace Fluf
+namespace fluf
 {
 	template<typename T> using InitializerList = std::initializer_list<T>;
 }
 
 // Ref Counter, for Graphics & Input Resources
 #include <memory>
-namespace Fluf
+namespace fluf
 {
 	template<typename T> using Ref = std::shared_ptr<T>;
 }

@@ -2,7 +2,7 @@
 #include <string>
 #include <fstream>
 
-namespace Fluf
+namespace fluf
 {
 	class File
 	{

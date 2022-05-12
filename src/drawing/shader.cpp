@@ -1,10 +1,9 @@
 #include <fluf/drawing/shader.h>
-#include <fluf/containers/vector.h>
-#include <GL/glew.h>
 #include <fstream>
 #include <sstream>
+#include <string>
 
-using namespace Fluf;
+using namespace fluf;
 
 ShaderSource Shader::parse(const String& filepath)
 {

@@ -1,209 +1,134 @@
 #include <fluf/app.h>
-#include <fluf/common.h>
-#include <fluf/time.h>
-#include "internal/internal.h"
-#include "internal/platform.h"
+#include <fluf/app_internal.h>
+#include <glad.h>
 
-using namespace Fluf;
-
-#define FLUF_ASSERT_RUNNING() FLUF_ASSERT(app_is_running, "The App is not running (call App::run)")
-
-// Internal Platform Pointer
-Platform* App::Internal::platform = nullptr;
-
-// Internal Renderer Pointer
-Renderer* App::Internal::renderer = nullptr;
-
-namespace
+namespace fluf
 {
-	// Global App State
-	Config	   app_config;
-	bool	   app_is_running = false;
-	bool	   app_is_exiting = false;
-	u64        app_time_last;
-	u64        app_time_accumulator = 0;
-}
+	app_t* app;
 
-bool App::run(const Config* c)
-{
-	FLUF_ASSERT(!app_is_running, "The Application is already running");
-
-	// copy config
-	app_config = *c;
-
-	// default behaviour for exit_request to exit the application
-	if (!app_config.on_exit_request)
-		app_config.on_exit_request = App::exit;
-
-	// exit out if setup is wrong
-	FLUF_ASSERT(c != nullptr, "The Application requires a valid Config");
-	FLUF_ASSERT(c->name != nullptr, "The Application Name cannot be null");
-	FLUF_ASSERT(c->width > 0 && c->height > 0, "The Width and Height must be larget than 0");
-	FLUF_ASSERT(c->max_updates > 0, "Max Updates must be >= 1");
-	FLUF_ASSERT(c->target_framerate > 0, "Target Framerate must be >= 1");
-
-	if (app_is_running || c == nullptr || c->width <= 0 || c->height <= 0 || c->max_updates <= 0 || c->target_framerate <= 0)
+	void fluf_sdl_log(void* userdata, int category, SDL_LogPriority priority, const char* message)
 	{
-		App::Internal::shutdown();
-		return false;
+		if (priority <= SDL_LOG_PRIORITY_INFO)
+			Log::info(message);
+		else if (priority <= SDL_LOG_PRIORITY_WARN)
+			Log::warn(message);
+		else
+			Log::error(message);
 	}
 
-	// default values
-	app_is_running = true;
-	app_is_exiting = false;
-
-	// initialize the system
+	app_t* app_make(const char* name, int x, int y, int w, int h, u32 options)
 	{
-		Internal::platform = Platform::try_make_platform(app_config);
-		if (!Internal::platform)
+		// LOGGING
+		SDL_LogSetAllPriority(SDL_LOG_PRIORITY_VERBOSE);
+		SDL_LogSetOutputFunction(fluf_sdl_log, nullptr);
+
+		// Get SDL version
+		SDL_version version;
+		SDL_GetVersion(&version);
+		Log::info("SDL v%i.%i.%i", version.major, version.minor, version.patch);
+
+		if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_EVENTS) != 0)
 		{
-			Log::error("Failed to create Platform module");
-			App::Internal::shutdown();
-			return false;
+			Log::error("failed to init sdl2");
+			app_stop_running();
+			return nullptr;
 		}
 
-		if (!Internal::platform->init(app_config))
-		{
-			Log::error("Failed to initialize Platform module");
-			App::Internal::shutdown();
-			return false;
-		}
-	}
+		u32 flags = 0;
+		if (options & FLUF_APP_OPTIONS_OPENGL_CONTEXT) flags |= SDL_WINDOW_OPENGL;
+		if (options & FLUF_APP_OPTIONS_FULLSCREEN) flags |= SDL_WINDOW_FULLSCREEN;
+		if (options & FLUF_APP_OPTIONS_RESIZABLE) flags |= SDL_WINDOW_RESIZABLE;
+		if (options & FLUF_APP_OPTIONS_HIDDEN) flags |= (SDL_WINDOW_HIDDEN | SDL_WINDOW_MINIMIZED);
 
-	// initalize graphics
-	{
-		Internal::renderer = Renderer::try_make_renderer();
-		if (!Internal::renderer)
-		{
-			Log::error("Failed to create Renderer module");
-			App::Internal::shutdown();
-			return false;
-		}
+		if (options & FLUF_APP_OPTIONS_OPENGL_CONTEXT) {
+			SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+			SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+			SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+			SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
+			SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
-		if (!Internal::renderer->init())
-		{
-			Log::error("Failed to initialize Renderer module");
-			App::Internal::shutdown();
-			return false;
-		}
-	}
-
-	// startup
-	if (app_config.on_startup != nullptr)
-		app_config.on_startup();
-
-	// display window
-	Internal::platform->ready();
-
-	// begin main loop
-	while (!app_is_exiting)
-		App::Internal::iterate();
-
-	// shutdown
-	if (app_config.on_shutdown != nullptr)
-		app_config.on_shutdown();
-	App::Internal::shutdown();
-	return true;
-}
-
-bool App::is_running()
-{
-	return app_is_running;
-}
-
-void App::Internal::shutdown()
-{
-	if (platform)
-		platform->shutdown();
-
-	if (platform)
-		delete platform;
-	platform = nullptr;
-
-	// clear static App state
-	app_config = Config();
-	app_is_running = false;
-	app_is_exiting = false;
-}
-
-void App::Internal::iterate()
-{
-	// update at a fixed time step
-	{
-		u64 time_target = (u64)((1.0 / app_config.target_framerate) * Time::ticks_per_second);
-		u64 time_curr = App::Internal::platform->ticks();
-		u64 time_diff = time_curr - app_time_last;
-		app_time_last = time_curr;
-		app_time_accumulator += time_diff;
-
-		// do not let us run too fast
-		while (app_time_accumulator < time_target)
-		{
-			int milliseconds = (int)(time_target - app_time_accumulator) / (Time::ticks_per_second / 1000);
-			App::Internal::platform->sleep(milliseconds);
-
-			time_curr = App::Internal::platform->ticks();
-			time_diff = time_curr - app_time_last;
-			app_time_last = time_curr;
-			app_time_accumulator += time_diff;
+			// TODO: find out what this does lol
+			SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+			SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+			SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+			SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
 		}
 
-		// Do not allow us to fall behind too many updates
-		// (otherwise we'll get spiral of death)
-		u64 time_maximum = app_config.max_updates * time_target;
-		if (app_time_accumulator > time_maximum)
-			app_time_accumulator = time_maximum;
+		SDL_Window* window;
+		if (options & FLUF_APP_OPTIONS_WINDOW_POS_CENTERED) {
+			window = SDL_CreateWindow(name, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, flags);
+		}
+		else {
+			window = SDL_CreateWindow(name, x, y, w, h, flags);
+		}
 
-		// do as many updates as we can
-		while (app_time_accumulator >= time_target)
+		app_t* app = new app_t();
+		app->options = options;
+		app->window = window;
+		app->w = w;
+		app->h = h;
+		app->x = x;
+		app->y = y;
+		fluf::app = app;
+
+		if ((options & FLUF_APP_OPTIONS_OPENGL_CONTEXT))
 		{
-			app_time_accumulator -= time_target;
-
-			Time::delta = (1.0f / app_config.target_framerate);
-
-			if (Time::pause_timer > 0)
+			SDL_GLContext ctx = SDL_GL_CreateContext(window);
+			if (!ctx) 
 			{
-				Time::pause_timer -= Time::delta;
-				if (Time::pause_timer <= -0.0001)
-					Time::delta = -Time::pause_timer;
-				else
-					continue;
+				Log::error("unable to create opengl context: %s", SDL_GetError());
+				app_stop_running();
+				return nullptr;
 			}
+			SDL_GL_MakeCurrent(window, ctx);
+			gladLoadGLLoader(SDL_GL_GetProcAddress);
+			SDL_GL_SetSwapInterval(1);
+			Log::info("OpenGL %s", glGetString(GL_VERSION));
+		}
 
-			Time::previous_ticks = Time::ticks;
-			Time::ticks += time_target;
-			Time::previous_seconds = Time::seconds;
-			Time::seconds += Time::delta;
+		return app;
+	}
 
-			platform->update();
-			renderer->update();
+	bool app_is_running()
+	{
+		return app->running;
+	}
 
-			if (app_config.on_update != nullptr)
-				app_config.on_update();
+	void app_stop_running()
+	{
+		app->running = false;
+	}
+
+	void app_update()
+	{
+		// poll normal events
+		SDL_Event event;
+		while (SDL_PollEvent(&event))
+		{
+			if (event.type == SDL_QUIT)
+			{
+				Log::info("quiting...");
+				app_stop_running();
+				break;
+			}
 		}
 	}
 
-	// render
+	void app_present()
 	{
-		renderer->before_render();
-
-		if (app_config.on_render != nullptr)
-			app_config.on_render();
-
-		renderer->after_render();
-		platform->present();
+		if (app->options & FLUF_APP_OPTIONS_OPENGL_CONTEXT)
+		{
+			SDL_GL_SwapWindow(app->window);
+		}
 	}
-}
 
-void App::exit()
-{
-	FLUF_ASSERT_RUNNING();
-	if (!app_is_exiting && app_is_running)
-		app_is_exiting = true;
-}
+	void app_destroy()
+	{
+		if (app->window != nullptr)
+			SDL_DestroyWindow(app->window);
+		app->window = nullptr;
 
-const Config& App::config()
-{
-	FLUF_ASSERT_RUNNING();
-	return app_config;
+		SDL_Quit();
+		delete app;
+	}
 }

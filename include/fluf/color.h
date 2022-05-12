@@ -1,8 +1,8 @@
 #pragma once
 #include <fluf/common.h>
-#include <fluf/math/spatial.h>
+#include <fluf/math.h>
 
-namespace Fluf
+namespace fluf
 {
 	struct Color
 	{

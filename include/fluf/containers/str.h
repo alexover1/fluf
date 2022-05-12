@@ -4,7 +4,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-namespace Fluf
+namespace fluf
 {
 	template<int T> class StrOf;
 	using String = StrOf<64>;
@@ -257,7 +257,7 @@ namespace Fluf
 
 	struct CaseInsenstiveStringHash
 	{
-		std::size_t operator()(const Fluf::Str& key) const
+		std::size_t operator()(const fluf::Str& key) const
 		{
 			std::size_t result = 2166136261U;
 
@@ -286,9 +286,9 @@ namespace Fluf
 namespace std
 {
 	template <>
-	struct hash<Fluf::Str>
+	struct hash<fluf::Str>
 	{
-		std::size_t operator()(const Fluf::Str& key) const
+		std::size_t operator()(const fluf::Str& key) const
 		{
 			std::size_t result = 2166136261U;
 
@@ -303,9 +303,9 @@ namespace std
 	};
 
 	template <int T>
-	struct hash<Fluf::StrOf<T>>
+	struct hash<fluf::StrOf<T>>
 	{
-		std::size_t operator()(const Fluf::StrOf<T>& key) const
+		std::size_t operator()(const fluf::StrOf<T>& key) const
 		{
 			std::size_t result = 2166136261U;
 

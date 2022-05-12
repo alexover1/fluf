@@ -4,7 +4,7 @@
 #include <stdio.h>	// for sprintf
 #include <cctype>	// toupper
 
-using namespace Fluf;
+using namespace fluf;
 
 char Str::empty_buffer[1] = { '\0' };
 
