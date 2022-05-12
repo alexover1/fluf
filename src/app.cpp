@@ -27,9 +27,10 @@ namespace fluf
 		SDL_GetVersion(&version);
 		Log::info("SDL v%i.%i.%i", version.major, version.minor, version.patch);
 
+		// initialize sdl
 		if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_EVENTS) != 0)
 		{
-			Log::error("failed to init sdl2");
+			Log::error("failed to init sdl");
 			app_stop_running();
 			return nullptr;
 		}
@@ -44,14 +45,6 @@ namespace fluf
 			SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 			SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 			SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-			SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
-			SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-
-			// TODO: find out what this does lol
-			SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-			SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-			SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-			SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
 		}
 
 		SDL_Window* window;
@@ -62,6 +55,7 @@ namespace fluf
 			window = SDL_CreateWindow(name, x, y, w, h, flags);
 		}
 
+		// create app
 		app_t* app = new app_t();
 		app->options = options;
 		app->window = window;
@@ -71,6 +65,7 @@ namespace fluf
 		app->y = y;
 		fluf::app = app;
 
+		// initialize opengl
 		if ((options & FLUF_APP_OPTIONS_OPENGL_CONTEXT))
 		{
 			SDL_GLContext ctx = SDL_GL_CreateContext(window);
@@ -83,7 +78,7 @@ namespace fluf
 			SDL_GL_MakeCurrent(window, ctx);
 			gladLoadGLLoader(SDL_GL_GetProcAddress);
 			SDL_GL_SetSwapInterval(1);
-			Log::info("OpenGL %s", glGetString(GL_VERSION));
+			Log::info("OpenGL %s %s", glGetString(GL_VERSION), glGetString(GL_RENDERER));
 		}
 
 		return app;
