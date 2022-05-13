@@ -71,6 +71,7 @@ uint Shader::compile(uint type, const String& source)
 }
 
 Shader::Shader(const String& filepath)
+	: m_bound(false)
 {
 	uint program = glCreateProgram();
 
@@ -141,12 +142,20 @@ void Shader::set_uniform_mat4(const String& name, const mat4x4& matrix)
 	glUniformMatrix4fv(uniform_location(name), 1, GL_FALSE, (const GLfloat*)matrix);
 }
 
-void Shader::enable() const
+void Shader::enable()
 {
-	glUseProgram(m_program);
+	if (!m_bound)
+	{
+		glUseProgram(m_program);
+		m_bound = true;
+	}
 }
 
-void Shader::disable() const
+void Shader::disable()
 {
-	glUseProgram(0);
+	if (m_bound)
+	{
+		glUseProgram(0);
+		m_bound = false;
+	}
 }

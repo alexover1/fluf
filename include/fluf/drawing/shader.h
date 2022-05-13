@@ -25,6 +25,7 @@ namespace fluf
 	{
 	private:
 		uint m_program;
+		bool m_bound;
 		std::unordered_map<String, int> m_uniform_location_cache;
 		
 		static ShaderSource parse(const String& filepath);
@@ -42,7 +43,7 @@ namespace fluf
 		void set_uniform_4f(const String& name, float v0, float v1, float v2, float v3);
 		void set_uniform_mat4(const String& name, const mat4x4& matrix);
 
-		void enable() const;
-		void disable() const;
+		void enable();
+		void disable();
 	};
 }

@@ -18,6 +18,6 @@ namespace fluf
 	class Renderer
 	{
 	public:
-		void draw_triangles(const varray& va, const ibuffer& ib, const Shader& shader) const;
+		void draw_triangles(const varray& va, const ibuffer& ib, Shader& shader) const;
 	};
 }

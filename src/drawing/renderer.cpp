@@ -32,7 +32,7 @@ namespace
 	)"""";
 }
 
-void Renderer::draw_triangles(const varray& va, const ibuffer& ib, const Shader& shader) const
+void Renderer::draw_triangles(const varray& va, const ibuffer& ib, Shader& shader) const
 {
 	shader.enable();
 	va.bind();

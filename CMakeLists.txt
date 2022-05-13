@@ -47,6 +47,7 @@ target_include_directories(fluf
 	PUBLIC
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/imgui>
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/glad>
 	PRIVATE
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
 )
