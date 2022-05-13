@@ -1,11 +1,11 @@
 #include <fluf/app.h>
 #include <fluf/app_internal.h>
-#include <glad/glad.h>
 
 namespace fluf
 {
 	app_t* app;
 
+#if defined DEBUG || defined _DEBUG
 	void fluf_sdl_log(void* userdata, int category, SDL_LogPriority priority, const char* message)
 	{
 		if (priority <= SDL_LOG_PRIORITY_INFO)
@@ -15,14 +15,17 @@ namespace fluf
 		else
 			Log::error(message);
 	}
+#endif
 
 	app_t* app_make(const char* name, int x, int y, int w, int h, u32 options)
 	{
-		// LOGGING
+#if defined DEBUG || defined _DEBUG
+		// LOGGING | TODO: remove
 		SDL_LogSetAllPriority(SDL_LOG_PRIORITY_VERBOSE);
 		SDL_LogSetOutputFunction(fluf_sdl_log, nullptr);
+#endif
 
-		// Get SDL version
+		// get sdl version
 		SDL_version version;
 		SDL_GetVersion(&version);
 		Log::info("SDL v%i.%i.%i", version.major, version.minor, version.patch);
@@ -35,18 +38,19 @@ namespace fluf
 			return nullptr;
 		}
 
+		// set gl attributes
+		if (options & FLUF_APP_OPTIONS_OPENGL_CONTEXT) {
+			gl_set_attributes();
+		}
+
+		// window flags
 		u32 flags = 0;
 		if (options & FLUF_APP_OPTIONS_OPENGL_CONTEXT) flags |= SDL_WINDOW_OPENGL;
 		if (options & FLUF_APP_OPTIONS_FULLSCREEN) flags |= SDL_WINDOW_FULLSCREEN;
 		if (options & FLUF_APP_OPTIONS_RESIZABLE) flags |= SDL_WINDOW_RESIZABLE;
 		if (options & FLUF_APP_OPTIONS_HIDDEN) flags |= (SDL_WINDOW_HIDDEN | SDL_WINDOW_MINIMIZED);
 
-		if (options & FLUF_APP_OPTIONS_OPENGL_CONTEXT) {
-			SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-			SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-			SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-		}
-
+		// create window
 		SDL_Window* window;
 		if (options & FLUF_APP_OPTIONS_WINDOW_POS_CENTERED) {
 			window = SDL_CreateWindow(name, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, flags);
@@ -66,28 +70,13 @@ namespace fluf
 		fluf::app = app;
 
 		// initialize opengl
-		if ((options & FLUF_APP_OPTIONS_OPENGL_CONTEXT))
+		if (options & FLUF_APP_OPTIONS_OPENGL_CONTEXT)
 		{
-			SDL_GLContext ctx = SDL_GL_CreateContext(window);
-			if (!ctx) 
-			{
-				Log::error("unable to create opengl context: %s", SDL_GetError());
-				app_stop_running();
-				return nullptr;
-			}
-			SDL_GL_SetSwapInterval(1);
-			SDL_GL_MakeCurrent(window, ctx);
-			gladLoadGLLoader(SDL_GL_GetProcAddress);
+			SDL_GLContext ctx = gl_create_context(window);
+			gl_init();
 
-			// TODO: should this go here?
-			// maybe this should be in the same place as where you would call glClearColor... etc
-			// some kind of gl settings function
-			// blending
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-			Log::info("OpenGL v%s", glGetString(GL_VERSION));
-			Log::info("Renderer: %s", glGetString(GL_RENDERER));
+			if (options & FLUF_APP_OPTIONS_IMGUI)
+				imgui_init(window, &ctx, "#version 330 core");
 		}
 
 		return app;
@@ -109,24 +98,39 @@ namespace fluf
 		SDL_Event event;
 		while (SDL_PollEvent(&event))
 		{
+			if (app->imgui())
+				ImGui_ImplSDL2_ProcessEvent(&event);
+
 			if (event.type == SDL_QUIT)
 			{
 				app_stop_running();
 				break;
 			}
 		}
+
+		// clear the screen
+		if (app->opengl())
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
 	void app_present()
 	{
-		if (app->options & FLUF_APP_OPTIONS_OPENGL_CONTEXT)
-		{
+		if (app->imgui())
+			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+		if (app->opengl())
 			SDL_GL_SwapWindow(app->window);
-		}
 	}
 
 	void app_destroy()
 	{
+		if (app->imgui())
+		{
+			ImGui_ImplOpenGL3_Shutdown();
+			ImGui_ImplSDL2_Shutdown();
+			ImGui::DestroyContext();
+		}
+
 		if (app->window != nullptr)
 			SDL_DestroyWindow(app->window);
 		app->window = nullptr;

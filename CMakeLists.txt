@@ -20,6 +20,21 @@ add_library(fluf
 	src/third_party/glad/khrplatform.h
 	src/third_party/stb/stb_image.cpp
 	src/third_party/stb/stb_image.h
+	src/third_party/imgui/imgui.h
+	src/third_party/imgui/imgui.cpp
+	src/third_party/imgui/imconfig.h
+	src/third_party/imgui/imgui_draw.cpp
+	src/third_party/imgui/imgui_internal.h
+	src/third_party/imgui/imgui_tables.cpp
+	src/third_party/imgui/imgui_widgets.cpp
+	src/third_party/imgui/imstb_rectpack.h
+	src/third_party/imgui/imstb_textedit.h
+	src/third_party/imgui/imstb_truetype.h
+	src/third_party/imgui/imgui_impl_sdl.h
+	src/third_party/imgui/imgui_impl_sdl.cpp
+	src/third_party/imgui/imgui_impl_opengl3.h
+	src/third_party/imgui/imgui_impl_opengl3.cpp
+	src/third_party/imgui/imgui_impl_opengl3_loader.h
 )
 
 # Include dependiences
@@ -31,6 +46,7 @@ include_directories($<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/third_part
 target_include_directories(fluf
 	PUBLIC
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/imgui>
 	PRIVATE
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
 )

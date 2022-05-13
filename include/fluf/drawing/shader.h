@@ -1,6 +1,6 @@
 #pragma once
 #include <fluf/common.h>
-#include <fluf/math.h>
+#include <fluf/linmath.h>
 #include <fluf/containers/str.h>
 #include <fluf/containers/vector.h>
 #include "renderer.h"

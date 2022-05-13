@@ -4,6 +4,7 @@
 #include "fluf/app.h"
 #include "fluf/files.h"
 #include "fluf/math.h"
+#include "fluf/linmath.h"
 #include "fluf/color.h"
 
 #include "fluf/containers/vector.h"

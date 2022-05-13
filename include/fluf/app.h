@@ -6,6 +6,7 @@
 #define FLUF_APP_OPTIONS_RESIZABLE                      (1 << 2)
 #define FLUF_APP_OPTIONS_HIDDEN                         (1 << 3)
 #define FLUF_APP_OPTIONS_WINDOW_POS_CENTERED            (1 << 4)
+#define FLUF_APP_OPTIONS_IMGUI							(1 << 5)
 
 namespace fluf
 {
