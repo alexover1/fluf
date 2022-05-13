@@ -1,6 +1,6 @@
 #include <fluf/app.h>
 #include <fluf/app_internal.h>
-#include <glad.h>
+#include <glad/glad.h>
 
 namespace fluf
 {
@@ -75,10 +75,19 @@ namespace fluf
 				app_stop_running();
 				return nullptr;
 			}
+			SDL_GL_SetSwapInterval(1);
 			SDL_GL_MakeCurrent(window, ctx);
 			gladLoadGLLoader(SDL_GL_GetProcAddress);
-			SDL_GL_SetSwapInterval(1);
-			Log::info("OpenGL %s %s", glGetString(GL_VERSION), glGetString(GL_RENDERER));
+
+			// TODO: should this go here?
+			// maybe this should be in the same place as where you would call glClearColor... etc
+			// some kind of gl settings function
+			// blending
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+			Log::info("OpenGL v%s", glGetString(GL_VERSION));
+			Log::info("Renderer: %s", glGetString(GL_RENDERER));
 		}
 
 		return app;
@@ -102,7 +111,6 @@ namespace fluf
 		{
 			if (event.type == SDL_QUIT)
 			{
-				Log::info("quiting...");
 				app_stop_running();
 				break;
 			}

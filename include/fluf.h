@@ -13,3 +13,4 @@
 #include "fluf/drawing/ibuffer.h"
 #include "fluf/drawing/varray.h"
 #include "fluf/drawing/shader.h"
+#include "fluf/drawing/texture.h"

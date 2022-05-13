@@ -10,7 +10,7 @@ namespace fluf
 		uint m_count;
 
 	public:
-		ibuffer(const uint* data, uint count);
+		ibuffer(const ushort* data, uint count);
 		~ibuffer();
 
 		void bind() const;

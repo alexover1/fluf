@@ -4,6 +4,7 @@
 #include <fluf/containers/str.h>
 #include <fluf/containers/vector.h>
 #include "renderer.h"
+#include <unordered_map>
 
 namespace fluf
 {
@@ -24,6 +25,7 @@ namespace fluf
 	{
 	private:
 		uint m_program;
+		std::unordered_map<String, int> m_uniform_location_cache;
 		
 		static ShaderSource parse(const String& filepath);
 		static uint compile(uint type, const String& source);
@@ -32,13 +34,13 @@ namespace fluf
 		Shader(const String& filepath);
 		~Shader();
 
-
-		int uniform_location(const char* name) const;
-		void set_uniform_1f(const char* name, float value) const;
-		void set_uniform_2f(const char* name, const vec2& value) const;
-		void set_uniform_3f(const char* name, const vec3& value) const;
-		void set_uniform_4f(const char* name, const vec4& value) const;
-		void set_uniform_mat4(const char* name, const mat4x4& matrix) const;
+		int uniform_location(const String& name);
+		void set_uniform_1f(const String& name, float v0);
+		void set_uniform_1i(const String& name, int v0);
+		void set_uniform_2f(const String& name, float v0, float v1);
+		void set_uniform_3f(const String& name, float v0, float v1, float v2);
+		void set_uniform_4f(const String& name, float v0, float v1, float v2, float v3);
+		void set_uniform_mat4(const String& name, const mat4x4& matrix);
 
 		void enable() const;
 		void disable() const;

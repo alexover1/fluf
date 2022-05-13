@@ -1,4 +1,5 @@
 #include <fluf/drawing/shader.h>
+#include <glad/glad.h>
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -97,32 +98,45 @@ Shader::~Shader()
 	glDeleteProgram(m_program);
 }
 
-int Shader::uniform_location(const char* name) const
+int Shader::uniform_location(const String& name) 
 {
-	return glGetUniformLocation(m_program, name);
+	if (m_uniform_location_cache.find(name) != m_uniform_location_cache.end())
+		return m_uniform_location_cache[name];
+
+	int location = glGetUniformLocation(m_program, name.cstr());
+	if (location == -1)
+		Log::warn("uniform '%s' doesn't exist", name.cstr());
+
+	m_uniform_location_cache[name] = location;
+	return location;
 }
 
-void Shader::set_uniform_1f(const char* name, float value) const
+void Shader::set_uniform_1f(const String& name, float v0)
 {
-	glUniform1f(uniform_location(name), value);
+	glUniform1f(uniform_location(name), v0);
 }
 
-void Shader::set_uniform_2f(const char* name, const vec2& vector) const
+void Shader::set_uniform_1i(const String& name, int v0)
 {
-	glUniform2f(uniform_location(name), vector[0], vector[1]);
+	glUniform1i(uniform_location(name), v0);
 }
 
-void Shader::set_uniform_3f(const char* name, const vec3& vector) const
+void Shader::set_uniform_2f(const String& name, float v0, float v1)
 {
-	glUniform3f(uniform_location(name), vector[0], vector[1], vector[2]);
+	glUniform2f(uniform_location(name), v0, v1);
 }
 
-void Shader::set_uniform_4f(const char* name, const vec4& vector) const
+void Shader::set_uniform_3f(const String& name, float v0, float v1, float v2)
 {
-	glUniform4f(uniform_location(name), vector[0], vector[1], vector[2], vector[3]);
+	glUniform3f(uniform_location(name), v0, v1, v2);
 }
 
-void Shader::set_uniform_mat4(const char* name, const mat4x4& matrix) const
+void Shader::set_uniform_4f(const String& name, float v0, float v1, float v2, float v3)
+{
+	glUniform4f(uniform_location(name), v0, v1, v2, v3);
+}
+
+void Shader::set_uniform_mat4(const String& name, const mat4x4& matrix)
 {
 	glUniformMatrix4fv(uniform_location(name), 1, GL_FALSE, (const GLfloat*)matrix);
 }

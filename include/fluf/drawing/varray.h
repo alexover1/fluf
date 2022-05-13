@@ -1,6 +1,7 @@
 #pragma once
 #include <fluf/containers/vector.h>
-#include <fluf/drawing/renderer.h>
+// TODO: find a way to not use this
+#include <fluf/drawing/renderer.h> // this is only needed bc of GL_FLOAT, GL_UNSIGNED_INT, etc...
 #include "vbuffer.h"
 
 namespace fluf
@@ -43,21 +44,21 @@ namespace fluf
 		template<>
 		void push<float>(uint count)
 		{
-			m_elements.push_back(vbufferelement{ GL_FLOAT, count, GL_FALSE });
+			m_elements.push_back(vbufferelement{ GL_FLOAT, count, false });
 			m_stride += count * vbufferelement::get_size_of_type(GL_FLOAT);
 		}
 
 		template<>
 		void push<uint>(uint count)
 		{
-			m_elements.push_back(vbufferelement{ GL_UNSIGNED_INT, count, GL_FALSE });
+			m_elements.push_back(vbufferelement{ GL_UNSIGNED_INT, count, false });
 			m_stride += count * vbufferelement::get_size_of_type(GL_UNSIGNED_INT);
 		}
 
 		template<>
 		void push<unsigned char>(uint count)
 		{
-			m_elements.push_back(vbufferelement{ GL_UNSIGNED_BYTE, count, GL_TRUE });
+			m_elements.push_back(vbufferelement{ GL_UNSIGNED_BYTE, count, true });
 			m_stride += count * vbufferelement::get_size_of_type(GL_UNSIGNED_BYTE);
 		}
 

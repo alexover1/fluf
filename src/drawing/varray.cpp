@@ -1,4 +1,5 @@
 #include <fluf/drawing/varray.h>
+#include <glad/glad.h>
 
 using namespace fluf;
 
@@ -26,9 +27,6 @@ void varray::add_buffer(const vbuffer& vb, const vbufferlayout& layout)
 		glVertexAttribPointer(i, element.count, element.type, element.normalized, layout.stride(), (const void*)offset);
 		offset += element.count * vbufferelement::get_size_of_type(element.type);
 	}
-
-	vb.unbind();
-	unbind();
 }
 
 void varray::bind() const
